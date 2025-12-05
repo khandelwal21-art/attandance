@@ -19,10 +19,13 @@ class Custombutton extends StatelessWidget{
         style: ButtonStyle(
           shape:WidgetStatePropertyAll(
               RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0)
+                  borderRadius: BorderRadius.circular(8.0),
+                side: BorderSide(
+                  color: Colors.grey
+                )
               )
           ),
-          backgroundColor:WidgetStatePropertyAll(Colors.blue),
+          backgroundColor:WidgetStatePropertyAll(Color(0xFF00272E)),
 
         ),
         child: isLoading?
@@ -36,7 +39,7 @@ class Custombutton extends StatelessWidget{
         Text(btnText,style: TextStyle(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
-            color: Colors.white
+            color: Colors.grey
 
         ),
         ),

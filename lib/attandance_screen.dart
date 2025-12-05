@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:location/controller/attandance_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
@@ -13,7 +15,8 @@ class LatLng {
 enum WorkMode { office, work, home }
 
 class LocationScreen extends StatefulWidget {
-  const LocationScreen({super.key});
+  final String name;
+  const LocationScreen({super.key,required this.name});
 
   @override
   State<LocationScreen> createState() => _LocationScreenState();
@@ -24,6 +27,7 @@ class _LocationScreenState extends State<LocationScreen> {
   DateTime datetime = DateTime.now();
   late String formattedTime = DateFormat('hh:mm a').format(datetime);
   late String weekDay = DateFormat('EEEE').format(datetime);
+  final AttendanceController controller=Get.find();
 
   LatLng? currentLatLng;
   bool isInsideCircle = false;
@@ -62,6 +66,8 @@ class _LocationScreenState extends State<LocationScreen> {
       LatLng userLoc = LatLng(position.latitude, position.longitude);
       setState(() {
         currentLatLng = userLoc;
+        print("Current Location: ${currentLatLng!.latitude}, ${currentLatLng!.longitude}");
+
       });
       checkGeoFence();
     } catch (e) {
@@ -85,10 +91,26 @@ class _LocationScreenState extends State<LocationScreen> {
       inside = dist <= officeRadius;
     }
     setState(() {
-      isInsideCircle = inside;
+     isInsideCircle = inside;
     });
   }
 
+  void _checkIn() {
+    if(currentLatLng!= null && isInsideCircle){
+      controller.checkIn();
+    }
+    else{
+      Get.snackbar('Failure', 'Not in allowed area or location not available');
+    }
+  }
+  void _checkOut() {
+    if(currentLatLng!= null && isInsideCircle){
+      controller.checkOut();
+    }
+    else{
+      Get.snackbar('Failure', 'Not in allowed area or location not available');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +127,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 children: [
                   Icon(Icons.bubble_chart_outlined, color: Colors.white),
                   Text(
-                    "Hello Chanchal",
+                    "Hello ${widget.name}",
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                   CircleAvatar(),
@@ -165,35 +187,55 @@ class _LocationScreenState extends State<LocationScreen> {
                     color: isInsideCircle ? Colors.green : Colors.grey,
                     fontSize: 16),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 20),
               Center(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    side: BorderSide(color: Colors.grey),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    backgroundColor: Colors.transparent,
-                  ),
-                  onPressed: isInsideCircle
-                      ? () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            "Attendance marked successfully!"),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        side: BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        backgroundColor: Colors.transparent,
                       ),
-                    );
-                  }
-                      : null,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      "Mark Attendance",
-                      style: TextStyle(
-                          color:
-                          isInsideCircle ? Colors.white : Colors.yellow,
-                          fontSize: 16),
+                      onPressed: isInsideCircle
+                          ? _checkIn
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          "Check In",
+                          style: TextStyle(
+                              color:
+                              isInsideCircle ? Colors.white : Colors.yellow,
+                              fontSize: 16),
+                        ),
+                      ),
                     ),
-                  ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        side: BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        backgroundColor: Colors.transparent,
+                      ),
+                      onPressed: isInsideCircle
+                          ?_checkOut
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          "Check Out",
+                          style: TextStyle(
+                              color:
+                              isInsideCircle ? Colors.white : Colors.yellow,
+                              fontSize: 16),
+                        ),
+                      ),
+                    ),
+
+                  ],
                 ),
               ),
             ],
